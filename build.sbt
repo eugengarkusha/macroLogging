@@ -6,6 +6,8 @@ lazy val metaVersion = "1.3.0.522"
 lazy val latestPullRequestNumber = 109
 lazy val paradiseVersion = s"3.0.0.$latestPullRequestNumber"
 
+lazy val compilerOptions = Seq[String]() // Include your favorite compiler flags here.
+
 lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   resolvers += Resolver.url(
     "scalameta",
@@ -14,6 +16,8 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   sources in (Compile, doc) := Nil,
   addCompilerPlugin(
     "org.scalameta" % "paradise" % paradiseVersion cross CrossVersion.full),
+  scalacOptions ++= compilerOptions,
+  scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based", // necessary to use console
   scalacOptions += "-Xplugin-require:macroparadise"
 )
 
