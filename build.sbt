@@ -10,12 +10,6 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   resolvers += Resolver.url(
     "scalameta",
     url("http://dl.bintray.com/scalameta/maven"))(Resolver.ivyStylePatterns),
-  // A dependency on scala.meta is required to write new-style macros, but not
-  // to expand such macros.  This is similar to how it works for old-style
-  // macros and a dependency on scala.reflect.  To find the latest version, see
-  // MetaVersion in:
-  // https://github.com/scalameta/paradise/blob/master/build.sbt
-  libraryDependencies += "org.scalameta" %% "scalameta" % "1.3.0.522",
   // A dependency on macro paradise 3.x is required to both write and expand
   // new-style macros.  This is similar to how it works for old-style macro
   // annotations and a dependency on macro paradise 2.x.  A new release is
@@ -32,7 +26,15 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
 )
 
 // Define macros in this project.
-lazy val macros = project.settings(metaMacroSettings)
+lazy val macros = project.settings(
+  metaMacroSettings,
+  // A dependency on scala.meta is required to write new-style macros, but not
+  // to expand such macros.  This is similar to how it works for old-style
+  // macros and a dependency on scala.reflect.  To find the latest version, see
+  // MetaVersion in:
+  // https://github.com/scalameta/paradise/blob/master/build.sbt
+  libraryDependencies += "org.scalameta" %% "scalameta" % "1.3.0.522"
+)
 
 // Use macros in this project.
 lazy val app = project.settings(metaMacroSettings).dependsOn(macros)
