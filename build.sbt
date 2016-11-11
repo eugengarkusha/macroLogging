@@ -18,7 +18,7 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   scalacOptions ++= compilerOptions,
   scalacOptions += "-Xplugin-require:macroparadise",
   // temporary workaround for https://github.com/scalameta/paradise/issues/10
-  scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based", // necessary to use console
+  scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based",
   // temporary workaround for https://github.com/scalameta/paradise/issues/55
   sources in (Compile, doc) := Nil
 )
