@@ -1,8 +1,6 @@
 // scala.meta macros are at the moment only supported in 2.11.
 scalaVersion in ThisBuild := "2.11.8"
 
-lazy val compilerOptions = Seq[String]() // Include favorite compiler flags here.
-
 lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   // New-style macro annotations are under active development.  As a result, in
   // this build we'll be referring to snapshot versions of both scala.meta and
@@ -17,12 +15,11 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   // see https://github.com/scalameta/paradise/commits/master and replace "122"
   addCompilerPlugin(
     "org.scalameta" % "paradise" % "3.0.0.122" cross CrossVersion.full),
-  scalacOptions ++= compilerOptions,
   scalacOptions += "-Xplugin-require:macroparadise",
   // temporary workaround for https://github.com/scalameta/paradise/issues/10
-  scalacOptions in (Compile, console) := compilerOptions :+ "-Yrepl-class-based", // necessary to use console
+  scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
   // temporary workaround for https://github.com/scalameta/paradise/issues/55
-  sources in (Compile, doc) := Nil
+  sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
 )
 
 // Define macros in this project.
