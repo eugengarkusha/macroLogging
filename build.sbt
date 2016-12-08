@@ -5,6 +5,7 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   // New-style macro annotations are under active development.  As a result, in
   // this build we'll be referring to snapshot versions of both scala.meta and
   // macro paradise.
+  resolvers += Resolver.sonatypeRepo("releases"),
   resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
   // A dependency on macro paradise 3.x is required to both write and expand
   // new-style macros.  This is similar to how it works for old-style macro
@@ -24,7 +25,7 @@ lazy val macros = project.settings(
   // A dependency on scala.meta is required to write new-style macros, but not
   // to expand such macros.  This is similar to how it works for old-style
   // macros and a dependency on scala.reflect.
-  libraryDependencies += "org.scalameta" %% "scalameta" % "1.4.0.544"
+  libraryDependencies += "org.scalameta" %% "scalameta" % "1.4.0"
 )
 
 // Use macros in this project.
