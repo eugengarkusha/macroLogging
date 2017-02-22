@@ -25,7 +25,7 @@ lazy val macros = project.settings(
   // A dependency on scala.meta is required to write new-style macros, but not
   // to expand such macros.  This is similar to how it works for old-style
   // macros and a dependency on scala.reflect.
-  libraryDependencies += "org.scalameta" %% "scalameta" % "1.4.0"
+  libraryDependencies += "org.scalameta" %% "scalameta" % "1.6.0"
 )
 
 // Use macros in this project.
