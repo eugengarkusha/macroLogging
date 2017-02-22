@@ -1,4 +1,5 @@
-// scala.meta macros are at the moment only supported in 2.11.
+// Scala.meta macros are available for two most recent minor versions of Scala.
+// At the time of writing, that's 2.11.8 and 2.12.1.
 scalaVersion in ThisBuild := "2.11.8"
 
 lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
