@@ -1,6 +1,6 @@
 // Scala.meta macros are available for two most recent minor versions of Scala.
-// At the time of writing, that's 2.11.10 and 2.12.1.
-scalaVersion in ThisBuild := "2.11.10"
+// At the time of writing, that's 2.11.11 and 2.12.2.
+scalaVersion in ThisBuild := "2.11.11"
 
 lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   // New-style macro annotations are under active development.  As a result, in
