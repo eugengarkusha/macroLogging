@@ -18,7 +18,7 @@ object LogCommon {
   )
 
   //returns (loggerVal, ( enabled, log)) Terms
-  private def getIsEnabledAndLog(self: Tree): (Defn.Val, (Term, Term)) = {
+  private def getIsEnabledAndLog(self: Tree, methodName: String): (Defn.Val, (Term, Term)) = {
 
     //getting annotation constructor params
     val (logger, level) = {
@@ -36,20 +36,21 @@ object LogCommon {
       }
     }
 
+    val loggerName = "___$logger"+methodName
+
     def _abort = abort(s"@LogAsync cannot read X.Value from ${level.syntax }. " +
       s"Use full or relative path as an argument to this annotation: (X.<value>) or  import X._; <value>")
 
     def toTerms(s: String): (Term, Term) = {
       Try(LogLevel.withName(s)).getOrElse(_abort) match {
-        case LogLevel.DEBUG => q"logger_.underlying.isDebugEnabled" -> q"logger_.debug"
-        case LogLevel.INFO => q"logger_.underlying.isInfoEnabled" -> q"logger_.info"
-        case LogLevel.WARN => q"logger_.underlying.isWarnEnabled" -> q"logger_.warn"
-        case LogLevel.ERROR => q"logger_.underlying.isErrorEnabled" -> q"logger_.error"
+        case LogLevel.DEBUG => q"""${Term.Name(loggerName + ".underlying.isDebugEnabled")}""" -> q"""${Term.Name(loggerName+".debug")}"""
+        case LogLevel.INFO => q"""${Term.Name(loggerName + ".underlying.isInfoEnabled")}""" -> q"""${Term.Name(loggerName+".info")}"""
+        case LogLevel.WARN => q"""${Term.Name(loggerName + ".underlying.isWarnEnabled")}""" -> q"""${Term.Name(loggerName+".warn")}"""
+        case LogLevel.ERROR => q"""${Term.Name(loggerName + ".underlying.isErrorEnabled")}""" -> q"""${Term.Name(loggerName+".error")}"""
       }
     }
 
-    //saving the $logger so in case if it is represented with builder function it is called only once
-    q"val logger_ = $logger" -> (level match {
+    q"""private [this] val ${Pat.Var.Term(Term.Name(loggerName))} = $logger""" -> (level match {
       case Term.Name(n) => toTerms(n)
       case Term.Select(x, n) => toTerms(n.syntax)
       case _ => _abort
@@ -58,11 +59,12 @@ object LogCommon {
 
   //TODO: figure out how to concatenate multi statement quasiquotes so the results are in the same block(..${someBlock.stats} does not work as expected)
   def apply(defn: Defn.Def, self: Tree)(logAfter: Term => Term): Term = {
-    val (logVal, (enabled, log)) = getIsEnabledAndLog(self)
-    q"""
-     $logVal
+    val methodName = defn.name.syntax
+    val (loggerVal, (enabled, log)) = getIsEnabledAndLog(self, methodName)
+
+    val body = q"""
      if($enabled){
-         val methodName = ${defn.name.syntax }
+         val methodName = $methodName
          val cid = _root_.scala.util.Random.nextLong()
          val params = ${methodParams(defn) }.mkString(", ")
          $log(s"calling '$$methodName' with params: [$$params], correlationId=$$cid")
@@ -71,6 +73,11 @@ object LogCommon {
          result
      } else {${defn.body }}
   """
+    //saving the $logger as the top level private val so in case if it is represented with builder function , this function is called only once
+    q"""
+      $loggerVal
+      ${defn.copy(body = body)}
+    """
   }
 
 }
@@ -81,10 +88,9 @@ class LogAsync(l: Logger, ll: LogLevel.Value) extends scala.annotation.StaticAnn
     defn match {
       case defn: Defn.Def =>
 
-        val body = LogCommon(defn, this) { log =>
+        LogCommon(defn, this) { log =>
           q"""result.onComplete{ r => $log(s"result of method '$$methodName'with correlationId=$$cid : $$r")}"""
         }
-        defn.copy(body = body)
 
       case _ => abort("@LogAsync must annotate a def")
     }
@@ -97,11 +103,10 @@ class Log(l: Logger, ll: LogLevel.Value) extends scala.annotation.StaticAnnotati
     defn match {
       case defn: Defn.Def =>
 
-        val body = LogCommon(defn, this) { log =>
+         LogCommon(defn, this) { log =>
           q"""$log(s"result of method '$$methodName' with correlationId=$$cid : $$result")"""
         }
 
-        defn.copy(body = body)
 
       case _ => abort("@Log must annotate a def")
     }
