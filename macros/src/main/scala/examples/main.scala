@@ -7,8 +7,8 @@ import scala.util.Random.nextLong
 import com.typesafe.scalalogging.Logger
 import scala.util.Try
 
-object LogLevel extends Enumeration{
-  val ERROR, WARN, INFO ,DEBUG = Value
+object LogLevel extends Enumeration {
+  val ERROR, WARN, INFO, DEBUG = Value
 }
 
 object LogCommon {
@@ -17,7 +17,8 @@ object LogCommon {
     (param, agr) => q"""(${param.name.syntax }  + "=" +  ${Term.Name(param.name.value) }) :: $agr"""
   )
 
-  private def getIsEnabledAndLog(self: Tree): (Term, Term) = {
+  //returns (loggerVal, ( enabled, log)) Terms
+  private def getIsEnabledAndLog(self: Tree): (Defn.Val, (Term, Term)) = {
 
     //getting annotation constructor params
     val (logger, level) = {
@@ -35,36 +36,38 @@ object LogCommon {
       }
     }
 
-    def _abort = abort(s"@LogAsync cannot read X.Value from ${level.syntax}. " +
+    def _abort = abort(s"@LogAsync cannot read X.Value from ${level.syntax }. " +
       s"Use full or relative path as an argument to this annotation: (X.<value>) or  import X._; <value>")
 
-    def toTerms(s: String) = {
+    def toTerms(s: String): (Term, Term) = {
       Try(LogLevel.withName(s)).getOrElse(_abort) match {
-        case LogLevel.DEBUG => q"""$logger.underlying.isDebugEnabled""" -> q"""$logger.debug"""
-        case LogLevel.INFO => q"""$logger.underlying.isInfoEnabled""" -> q"""$logger.info"""
-        case LogLevel.WARN => q"""$logger.underlying.isWarnEnabled""" -> q"""$logger.warn"""
-        case LogLevel.ERROR => q"""$logger.underlying.isErrorEnabled""" -> q"""$logger.error"""
+        case LogLevel.DEBUG => q"logger_.underlying.isDebugEnabled" -> q"logger_.debug"
+        case LogLevel.INFO => q"logger_.underlying.isInfoEnabled" -> q"logger_.info"
+        case LogLevel.WARN => q"logger_.underlying.isWarnEnabled" -> q"logger_.warn"
+        case LogLevel.ERROR => q"logger_.underlying.isErrorEnabled" -> q"logger_.error"
       }
     }
 
-    level match {
+    //saving the $logger so in case if it is represented with builder function it is called only once
+    q"val logger_ = $logger" -> (level match {
       case Term.Name(n) => toTerms(n)
       case Term.Select(x, n) => toTerms(n.syntax)
       case _ => _abort
-    }
+    })
   }
 
   //TODO: figure out how to concatenate multi statement quasiquotes so the results are in the same block(..${someBlock.stats} does not work as expected)
   def apply(defn: Defn.Def, self: Tree)(logAfter: Term => Term): Term = {
-    val (enabled, log) = getIsEnabledAndLog(self)
-      q"""
+    val (logVal, (enabled, log)) = getIsEnabledAndLog(self)
+    q"""
+     $logVal
      if($enabled){
          val methodName = ${defn.name.syntax }
          val cid = _root_.scala.util.Random.nextLong()
          val params = ${methodParams(defn) }.mkString(", ")
          $log(s"calling '$$methodName' with params: [$$params], correlationId=$$cid")
          val result = ${defn.body }
-         ${logAfter(log)}
+         ${logAfter(log) }
          result
      } else {${defn.body }}
   """

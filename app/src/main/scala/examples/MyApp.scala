@@ -24,7 +24,13 @@ object MyApp extends App {
 
   import LogLevel._
 
-  @Log(logger, DEBUG)
+  //checking that logger is created only once
+  def getLogger = {
+    println("creating logger")
+    Logger("NEWLOGGER")
+  }
+
+  @Log(getLogger, DEBUG)
   def someMethodSync(a: Int, b: String, x: Date): Int = {
     a + 2
   }
@@ -32,6 +38,7 @@ object MyApp extends App {
   someMethodSync(35, "someParam", new Date())
 
 //prints:
+//creating logger
 //10:54:26.603 [run-main-b] DEBUG NEWLOGGER - calling 'someMethodSync' with params: [a=35, b=someParam, x=Wed Apr 26 10:54:26 CEST 2017], correlationId=7420713298135813737
 //10:54:26.603 [run-main-b] DEBUG NEWLOGGER - result of method 'someMethodSync' with correlationId=7420713298135813737 : 37
 
