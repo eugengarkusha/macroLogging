@@ -10,17 +10,20 @@ object MyApp extends App {
 
   val logger = Logger("NEWLOGGER")
 
-  @LogAsync(logger, Error)
+import LogLevel._
+  @LogAsync(logger, LogLevel.WARN)
   def someMethodAsync(a: Int, b: String, x: Date): Future[Int] = {
     Future(a + 2)
   }
 
   someMethodAsync(35, "someParam", new Date())
-//prints:
-//01:25:16.273 [run-main-5] ERROR NEWLOGGER - calling 'someMethodAsync' with params: [a=35, b=someParam, x=Wed Apr 26 01:25:16 CEST 2017],correlationId=-800595665753922164
-//01:25:16.277 [ForkJoinPool-1-worker-13] ERROR NEWLOGGER - result of method 'someMethodAsync' with correlationId=-800595665753922164 : Success(37)
 
-  @Log(logger, Error)
+//prints:
+//10:54:26.600 [run-main-b] WARN NEWLOGGER - calling 'someMethodAsync' with params: [a=35, b=someParam, x=Wed Apr 26 10:54:26 CEST 2017], correlationId=965055641972199212
+//10:54:26.603 [ForkJoinPool-1-worker-13] WARN NEWLOGGER - result of method 'someMethodAsync'with correlationId=965055641972199212 : Success(37)
+
+
+  @Log(logger, DEBUG)
   def someMethodSync(a: Int, b: String, x: Date): Int = {
     a + 2
   }
@@ -28,8 +31,9 @@ object MyApp extends App {
   someMethodSync(35, "someParam", new Date())
 
 //prints:
-//01:25:16.277 [run-main-5] ERROR NEWLOGGER - calling 'someMethodSync' with params: [a=35, b=someParam, x=Wed Apr 26 01:25:16 CEST 2017],correlationId=-4819438853255234199
-//01:25:16.277 [run-main-5] ERROR NEWLOGGER - result of method 'someMethodSync' with correlationId=-4819438853255234199 : 37
+//10:54:26.603 [run-main-b] DEBUG NEWLOGGER - calling 'someMethodSync' with params: [a=35, b=someParam, x=Wed Apr 26 10:54:26 CEST 2017], correlationId=7420713298135813737
+//10:54:26.603 [run-main-b] DEBUG NEWLOGGER - result of method 'someMethodSync' with correlationId=7420713298135813737 : 37
+
 
 }
 
