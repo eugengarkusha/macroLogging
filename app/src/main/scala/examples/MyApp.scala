@@ -10,7 +10,7 @@ object MyApp extends App {
 
   val logger = Logger("NEWLOGGER")
 
-import LogLevel._
+
   @LogAsync(logger, LogLevel.WARN)
   def someMethodAsync(a: Int, b: String, x: Date): Future[Int] = {
     Future(a + 2)
@@ -22,6 +22,7 @@ import LogLevel._
 //10:54:26.600 [run-main-b] WARN NEWLOGGER - calling 'someMethodAsync' with params: [a=35, b=someParam, x=Wed Apr 26 10:54:26 CEST 2017], correlationId=965055641972199212
 //10:54:26.603 [ForkJoinPool-1-worker-13] WARN NEWLOGGER - result of method 'someMethodAsync'with correlationId=965055641972199212 : Success(37)
 
+  import LogLevel._
 
   @Log(logger, DEBUG)
   def someMethodSync(a: Int, b: String, x: Date): Int = {
