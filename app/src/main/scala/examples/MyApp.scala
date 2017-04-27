@@ -6,6 +6,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.typesafe.scalalogging.Logger
 
+
 object MyApp extends App {
 
   val logger = Logger("NEWLOGGER")
@@ -28,6 +29,7 @@ object MyApp extends App {
    val l =  Logger("NEWLOGGER")
    l
   }
+
 
 
   @Log(getLogger, DEBUG)
